@@ -143,6 +143,15 @@ class RepoIngestRequest(BaseModel):
     )
 
 
+class GithubIngestRequest(BaseModel):
+    github_url: str = Field(..., description="Public GitHub repository URL (e.g. https://github.com/owner/repo)")
+    repo_name: Optional[str] = Field(None, description="Custom repository alias")
+    include_patterns: Optional[List[str]] = Field(default=["*.py", "*.ts", "*.tsx", "*.js", "*.jsx"])
+    exclude_patterns: Optional[List[str]] = Field(
+        default=["node_modules", ".venv", "venv", ".git", "dist", "build", "__pycache__", ".next"]
+    )
+
+
 class RepoIngestResponse(BaseModel):
     status: str
     repo_name: str

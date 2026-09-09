@@ -3,7 +3,7 @@ import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { Inspector } from './components/layout/Inspector';
 import { TerminalConsole } from './components/layout/TerminalConsole';
-import { ScanModal } from './components/layout/ScanModal';
+import { IngestionModal } from './components/IngestionModal';
 import { ConstellationCanvas } from './components/canvas/ConstellationCanvas';
 import { useOmniStore } from './store/useOmniStore';
 import { fetchGraph } from './services/api';
@@ -58,7 +58,7 @@ export const App: React.FC = () => {
       <TerminalConsole />
 
       {/* Ingest Repository Modal */}
-      <ScanModal />
+      <IngestionModal />
     </div>
   );
 };

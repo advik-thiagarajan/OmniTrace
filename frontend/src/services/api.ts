@@ -25,6 +25,37 @@ export async function analyzeRepository(repoPath: string, repoName?: string) {
   return res.json();
 }
 
+export async function ingestGithub(githubUrl: string, repoName?: string) {
+  const res = await fetch(`${API_BASE}/ingest/github`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ github_url: githubUrl, repo_name: repoName }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || 'GitHub ingestion failed');
+  }
+  return res.json();
+}
+
+export async function ingestZip(file: File, repoName?: string) {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (repoName) {
+    formData.append('repo_name', repoName);
+  }
+
+  const res = await fetch(`${API_BASE}/ingest/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || 'ZIP ingestion failed');
+  }
+  return res.json();
+}
+
 export async function calculateBlastRadius(targetId: string, maxDepth: number = 4) {
   const res = await fetch(`${API_BASE}/analysis/blast-radius`, {
     method: 'POST',
