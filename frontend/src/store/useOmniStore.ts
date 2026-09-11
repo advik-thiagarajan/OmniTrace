@@ -109,6 +109,11 @@ interface OmniState {
   chatMessages: ChatMessage[];
   isChatLoading: boolean;
 
+  // Color Customization State
+  nodeColor: string;
+  edgeColor: string;
+  highlightColor: string;
+
   // Actions
   setGraphData: (repoName: string, nodes: GraphNode[], edges: GraphEdge[]) => void;
   setSelectedNode: (node: GraphNode | null) => void;
@@ -126,6 +131,10 @@ interface OmniState {
   addChatMessage: (msg: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   setIsChatLoading: (val: boolean) => void;
   setCameraFocusPosition: (pos: [number, number, number] | null) => void;
+  setNodeColor: (color: string) => void;
+  setEdgeColor: (color: string) => void;
+  setHighlightColor: (color: string) => void;
+  resetColors: () => void;
 }
 
 export const useOmniStore = create<OmniState>((set, get) => ({
@@ -163,6 +172,10 @@ export const useOmniStore = create<OmniState>((set, get) => ({
     },
   ],
   isChatLoading: false,
+
+  nodeColor: '#3b82f6',
+  edgeColor: '#64748b',
+  highlightColor: '#ef4444',
 
   setGraphData: (repoName, nodes, edges) => set({ repoName, nodes, edges, isLoadingGraph: false }),
   
@@ -242,4 +255,8 @@ export const useOmniStore = create<OmniState>((set, get) => ({
 
   setIsChatLoading: (val) => set({ isChatLoading: val }),
   setCameraFocusPosition: (pos) => set({ cameraFocusPosition: pos }),
+  setNodeColor: (color) => set({ nodeColor: color }),
+  setEdgeColor: (color) => set({ edgeColor: color }),
+  setHighlightColor: (color) => set({ highlightColor: color }),
+  resetColors: () => set({ nodeColor: '#3b82f6', edgeColor: '#64748b', highlightColor: '#ef4444' }),
 }));

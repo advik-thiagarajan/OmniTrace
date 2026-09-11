@@ -5,10 +5,11 @@ import * as THREE from 'three';
 import { GraphNodes } from './GraphNodes';
 import { GraphEdges } from './GraphEdges';
 import { ParticleStream } from './ParticleStream';
-import { useOmniStore } from '../../store/useOmniStore';
+import { ColorCustomizer } from '../ColorCustomizer';
+import { useGraphStore } from '../../store/useGraphStore';
 
 const CameraController: React.FC = () => {
-  const { cameraFocusPosition } = useOmniStore();
+  const { cameraFocusPosition } = useGraphStore();
   const controlsRef = useRef<any>(null);
 
   useFrame((state) => {
@@ -34,7 +35,7 @@ const CameraController: React.FC = () => {
 };
 
 export const ConstellationCanvas: React.FC = () => {
-  const { setSelectedNode, setHoveredNode } = useOmniStore();
+  const { setSelectedNode, setHoveredNode, nodeColor, edgeColor, highlightColor } = useGraphStore();
 
   return (
     <div className="w-full h-full relative bg-command-950">
@@ -81,23 +82,33 @@ export const ConstellationCanvas: React.FC = () => {
             Constellation Legend
           </div>
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-glow-cyan" />
-            <span className="text-slate-300">File Modules</span>
+            <span
+              className="w-2.5 h-2.5 rounded-full transition-colors"
+              style={{ backgroundColor: nodeColor }}
+            />
+            <span className="text-slate-300">Graph Nodes</span>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-glow-purple" />
-            <span className="text-slate-300">Functions / Methods</span>
+            <span
+              className="w-2.5 h-2.5 rounded-full transition-colors"
+              style={{ backgroundColor: edgeColor }}
+            />
+            <span className="text-slate-300">Connecting Edges</span>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-            <span className="text-slate-300">Classes & Structs</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-glow-danger" />
-            <span className="text-red-400 font-semibold">Blast Radius Risk</span>
+            <span
+              className="w-2.5 h-2.5 rounded-full animate-pulse shadow-glow-danger transition-colors"
+              style={{ backgroundColor: highlightColor }}
+            />
+            <span className="font-semibold" style={{ color: highlightColor }}>
+              Blast Radius / Risk
+            </span>
           </div>
         </div>
       </div>
+
+      {/* Real-time Color Customizer Panel */}
+      <ColorCustomizer />
     </div>
   );
 };

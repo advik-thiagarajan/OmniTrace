@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { useOmniStore, GraphNode } from '../../store/useOmniStore';
+import { useGraphStore, GraphNode } from '../../store/useGraphStore';
 
 interface NodeMeshProps {
   node: GraphNode;
@@ -12,6 +12,8 @@ interface NodeMeshProps {
   isPulsing: boolean;
   isBlastTarget: boolean;
   isImpacted: boolean;
+  nodeColor: string;
+  highlightColor: string;
   onSelect: () => void;
   onHover: (hover: boolean) => void;
 }
@@ -24,30 +26,25 @@ const NodeMesh: React.FC<NodeMeshProps> = ({
   isPulsing,
   isBlastTarget,
   isImpacted,
+  nodeColor,
+  highlightColor,
   onSelect,
   onHover,
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
 
-  // Determine base color
+  const isHighRisk = (node.risk_score !== undefined && node.risk_score > 70) || false;
+
+  // Determine active color based on state, risk, selection, and store customization
   const getColor = () => {
-    if (isBlastTarget) return '#ef4444'; // Red
+    if (isBlastTarget || isSelected || isHighRisk) return highlightColor;
     if (isImpacted) return '#f97316';   // Orange
     if (isPulsing) return '#f43f5e';    // Rose pulse
-    switch (node.type) {
-      case 'FILE':
-        return '#00f2fe'; // Cyan
-      case 'FUNCTION':
-        return '#c084fc'; // Purple
-      case 'CLASS':
-        return '#fbbf24'; // Amber
-      default:
-        return '#38bdf8'; // Sky blue
-    }
+    return nodeColor;
   };
 
-  const nodeColor = getColor();
+  const currentColor = getColor();
   const radius = isBlastTarget
     ? 2.6
     : isSelected
@@ -96,8 +93,8 @@ const NodeMesh: React.FC<NodeMeshProps> = ({
       >
         <sphereGeometry args={[radius, 32, 32]} />
         <meshStandardMaterial
-          color={nodeColor}
-          emissive={nodeColor}
+          color={currentColor}
+          emissive={currentColor}
           emissiveIntensity={
             isBlastTarget
               ? 1.8
@@ -109,7 +106,7 @@ const NodeMesh: React.FC<NodeMeshProps> = ({
               ? 0.9
               : 0.45
           }
-          roughness={0.2}
+          roughness={0.3}
           metalness={0.8}
         />
       </mesh>
@@ -119,7 +116,7 @@ const NodeMesh: React.FC<NodeMeshProps> = ({
         <mesh ref={ringRef}>
           <ringGeometry args={[radius * 1.4, radius * 1.65, 32]} />
           <meshBasicMaterial
-            color={isBlastTarget ? '#ef4444' : '#f97316'}
+            color={isBlastTarget ? highlightColor : '#f97316'}
             side={THREE.DoubleSide}
             transparent
             opacity={0.8}
@@ -134,7 +131,7 @@ const NodeMesh: React.FC<NodeMeshProps> = ({
             <div className="flex items-center space-x-1.5">
               <span
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: nodeColor }}
+                style={{ backgroundColor: currentColor }}
               />
               <span className="font-bold text-white">{node.label}</span>
               <span className="text-[9px] uppercase px-1 rounded bg-white/10 text-slate-300">
@@ -161,7 +158,9 @@ export const GraphNodes: React.FC = () => {
     pulsingNodeIds,
     blastRadiusResult,
     impactedNodeIdSet,
-  } = useOmniStore();
+    nodeColor,
+    highlightColor,
+  } = useGraphStore();
 
   return (
     <group>
@@ -183,6 +182,8 @@ export const GraphNodes: React.FC = () => {
             isPulsing={isPulsing}
             isBlastTarget={isBlastTarget}
             isImpacted={isImpacted}
+            nodeColor={nodeColor}
+            highlightColor={highlightColor}
             onSelect={() => setSelectedNode(node)}
             onHover={(hover) => setHoveredNode(hover ? node : null)}
           />

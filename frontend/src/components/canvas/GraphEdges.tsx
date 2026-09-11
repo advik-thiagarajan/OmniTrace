@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { useOmniStore, GraphEdge, GraphNode } from '../../store/useOmniStore';
+import { useGraphStore, GraphEdge, GraphNode } from '../../store/useGraphStore';
 
 interface EdgeLineProps {
   sourcePos: [number, number, number];
@@ -8,6 +8,8 @@ interface EdgeLineProps {
   edge: GraphEdge;
   isImpacted: boolean;
   isSelectedEdge: boolean;
+  edgeColor: string;
+  highlightColor: string;
 }
 
 const EdgeLine: React.FC<EdgeLineProps> = ({
@@ -16,6 +18,8 @@ const EdgeLine: React.FC<EdgeLineProps> = ({
   edge,
   isImpacted,
   isSelectedEdge,
+  edgeColor,
+  highlightColor,
 }) => {
   const points = useMemo(() => {
     const p1 = new THREE.Vector3(...sourcePos);
@@ -24,43 +28,41 @@ const EdgeLine: React.FC<EdgeLineProps> = ({
   }, [sourcePos, targetPos]);
 
   const lineGeometry = useMemo(() => {
-    const geom = new THREE.BufferGeometry().setFromPoints(points);
-    return geom;
+    return new THREE.BufferGeometry().setFromPoints(points);
   }, [points]);
 
   const getEdgeColor = () => {
-    if (isImpacted) return '#ef4444'; // Vivid Red for blast radius path
+    if (isImpacted) return highlightColor; // Alert / risk color for blast radius
     if (isSelectedEdge) return '#00f2fe';
-    switch (edge.type) {
-      case 'CALLS':
-        return '#818cf8'; // Neon Indigo / Purple
-      case 'IMPORTS':
-        return '#06b6d4'; // Cyan
-      case 'INHERITS':
-        return '#f59e0b'; // Amber
-      default:
-        return '#1e293b'; // Slate dark for CONTAINS
-    }
+    return edgeColor;
   };
 
   const color = getEdgeColor();
-  const opacity = isImpacted ? 0.95 : isSelectedEdge ? 0.85 : edge.type === 'CONTAINS' ? 0.22 : 0.45;
+  const opacity = isImpacted ? 0.95 : isSelectedEdge ? 0.85 : edge.type === 'CONTAINS' ? 0.35 : 0.6;
 
-  return (
-    <primitive object={new THREE.Line(
-      lineGeometry,
-      new THREE.LineBasicMaterial({
-        color: new THREE.Color(color),
-        transparent: true,
-        opacity: opacity,
-        linewidth: isImpacted ? 3 : 1,
-      })
-    )} />
-  );
+  const line = useMemo(() => {
+    const mat = new THREE.LineBasicMaterial({
+      color: new THREE.Color(color),
+      transparent: true,
+      opacity: opacity,
+    });
+    return new THREE.Line(lineGeometry, mat);
+  }, [lineGeometry]);
+
+  React.useEffect(() => {
+    if (line && line.material) {
+      const mat = line.material as THREE.LineBasicMaterial;
+      mat.color.set(color);
+      mat.opacity = opacity;
+      mat.needsUpdate = true;
+    }
+  }, [line, color, opacity]);
+
+  return <primitive object={line} />;
 };
 
 export const GraphEdges: React.FC = () => {
-  const { nodes, edges, selectedNode, impactedEdgeIdSet } = useOmniStore();
+  const { nodes, edges, selectedNode, impactedEdgeIdSet, edgeColor, highlightColor } = useGraphStore();
 
   const nodeMap = useMemo(() => {
     const map = new Map<string, GraphNode>();
@@ -90,9 +92,12 @@ export const GraphEdges: React.FC = () => {
             edge={edge}
             isImpacted={isImpacted}
             isSelectedEdge={isSelectedEdge}
+            edgeColor={edgeColor}
+            highlightColor={highlightColor}
           />
         );
       })}
     </group>
   );
 };
+
